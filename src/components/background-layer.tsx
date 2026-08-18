@@ -27,7 +27,7 @@ export function BackgroundLayer() {
 
     let cancelled = false
     const img = new Image()
-    img.src = "/wipro-logo.svg"
+    img.src = "/branding/PARI.png"
 
     img.onload = () => {
       if (cancelled) return
@@ -42,16 +42,16 @@ export function BackgroundLayer() {
 
       ctx.clearRect(0, 0, width, height)
 
-      const svgAspect = img.naturalWidth / img.naturalHeight
+      const imageAspect = img.naturalWidth / img.naturalHeight
       const viewportAspect = width / height
       let drawWidth: number
       let drawHeight: number
-      if (viewportAspect > svgAspect) {
-        drawHeight = height * 0.5
-        drawWidth = drawHeight * svgAspect
+      if (viewportAspect > imageAspect) {
+        drawHeight = height * 1.5
+        drawWidth = drawHeight * imageAspect
       } else {
-        drawWidth = width * 0.5
-        drawHeight = drawWidth / svgAspect
+        drawWidth = width * 1.5
+        drawHeight = drawWidth / imageAspect
       }
       const drawX = (width - drawWidth) / 2
       const drawY = (height - drawHeight) / 2
@@ -61,7 +61,7 @@ export function BackgroundLayer() {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const pixels = imageData.data
 
-      const maxParticles = 11000
+      const maxParticles = 22000
       const spacing = Math.max(2, Math.floor(Math.sqrt((canvas.width * canvas.height) / (maxParticles * 1.6))))
 
       const candidates: { x: number; y: number; r: number; g: number; b: number }[] = []
@@ -153,7 +153,7 @@ export function BackgroundLayer() {
 
         ctx.fillStyle = p.color
         ctx.beginPath()
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2)
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2)
         ctx.fill()
       }
 

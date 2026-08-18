@@ -17,11 +17,11 @@ export function AlmLogo({ className = "", size = 22 }: AlmLogoProps) {
       style={{ width: size, height: size }}
     >
       <img
-        src="/wipro-logo.svg"
-        alt="Wipro"
+        src="/branding/PARI.png"
+        alt="Wipro PARI"
         width={size}
         height={size}
-        className="block"
+        className="block object-contain"
         draggable={false}
         style={{ width: size, height: size }}
       />

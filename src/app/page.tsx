@@ -99,7 +99,7 @@ export default function Home() {
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", stiffness: 320, damping: 18 }}
         >
-          <AlmLogo size={34} />
+          <AlmLogo size={42} />
           <span className="text-[15px] font-medium tracking-wide text-foreground font-zen-dots">
             ALM
           </span>
