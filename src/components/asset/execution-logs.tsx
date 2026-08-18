@@ -1,6 +1,7 @@
 "use client"
 
 import { ScrollText, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type LogEntry = {
   id: string
@@ -11,11 +12,12 @@ type LogEntry = {
 
 type ExecutionLogsProps = {
   logs: LogEntry[]
+  className?: string
 }
 
-export function ExecutionLogs({ logs }: ExecutionLogsProps) {
+export function ExecutionLogs({ logs, className }: ExecutionLogsProps) {
   return (
-    <div className="rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300">
+    <div className={cn("rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300", className)}>
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-sm font-medium text-foreground">Execution Logs</h3>

@@ -3,11 +3,13 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
 
 @theme inline {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
-  --font-mono: "SF Mono", "SFMono-Regular", ui-monospace, monospace;
-  --font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", "SFMono-Regular", ui-monospace, monospace;
+  --font-heading: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-zen-dots: "Zen Dots", monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -51,6 +53,42 @@
 }
 
 :root {
+  /* Aura-inspired light mode */
+  --background: #f3f3f5;
+  --foreground: #0f0d0d;
+  --card: #ffffff;
+  --card-foreground: #0f0d0d;
+  --popover: #ffffff;
+  --popover-foreground: #0f0d0d;
+  --primary: #2e1065;
+  --primary-foreground: #ffffff;
+  --secondary: #f0eefb;
+  --secondary-foreground: #211f54;
+  --muted: #f0eefb;
+  --muted-foreground: #6e7191;
+  --accent: #4cc9f0;
+  --accent-foreground: #211f54;
+  --destructive: #ef4444;
+  --border: #d7d5f0;
+  --input: #d7d5f0;
+  --ring: #7c3aed;
+  --chart-1: #2e1065;
+  --chart-2: #4cc9f0;
+  --chart-3: #ffcd2e;
+  --chart-4: #7ec45f;
+  --chart-5: #be266a;
+  --radius: 1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f0d0d;
+  --sidebar-primary: #0f0d0d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f3f5;
+  --sidebar-accent-foreground: #0f0d0d;
+  --sidebar-border: #e5e5e6;
+  --sidebar-ring: #b1c8d6;
+}
+
+.dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.18 0 0);
@@ -74,7 +112,6 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.75rem;
   --sidebar: oklch(0.16 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -85,43 +122,10 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-.light {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(0.985 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(0.985 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    cursor: none !important;
   }
   body {
     @apply bg-background text-foreground;
@@ -132,26 +136,50 @@
   ::selection {
     @apply bg-primary/20;
   }
+  a,
+  button,
+  [role="button"],
+  input,
+  textarea,
+  select,
+  label,
+  [tabindex],
+  [data-cursor="hover"] {
+    cursor: none !important;
+  }
+}
+
+.font-zen-dots {
+  font-family: var(--font-zen-dots), "Zen Dots", monospace;
 }
 
 .bg-logo {
-  background-image: url("/cerberus-bg.png");
+  background-image: url("/wipro-logo.svg");
   background-size: 50vw 50vh;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.25;
+  opacity: 0.12;
 }
 
 .bg-logo[data-animate="true"] {
-  opacity: 0.25;
+  opacity: 0.12;
   animation: bg-logo-fade 1s ease-out;
 }
 
 @keyframes bg-logo-fade {
   0% {
-    opacity: 1;
+    opacity: 0.24;
   }
   100% {
-    opacity: 0.25;
+    opacity: 0.12;
   }
+}
+
+/* Fallback static background logo when canvas layer is unavailable */
+.bg-logo-static {
+  background-image: url("/wipro-logo.svg");
+  background-size: 50vw 50vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.12;
 }

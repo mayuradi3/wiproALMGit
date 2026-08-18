@@ -1,51 +1,66 @@
-# Cerberus
+# Wipro ALM — Asset Library Manager
 
-Cerberus is a Next.js web app for bulk and single 3D asset processing. It takes uploaded models, textures, and thumbnails and produces clean, folder-organized exports ready for a game engine or asset library.
+Wipro **ALM** (Asset Library Manager) is a support pipeline for the WP Asset Library extension in **NVIDIA Isaac Sim**. It helps technical artists and developers organize, clean, and package 3D assets so they are ready to drop into the asset library with the correct folder structure, thumbnails, and naming conventions.
+
+This repository contains the web front-end for ALM: a lightweight, browser-based pipeline hub built with **Next.js**.
+
+> **Note:** All asset processing happens locally in the browser. No files are uploaded to any server.
+
+---
+
+## What ALM does
+
+- Takes raw 3D models, textures, and reference images
+- Renders and captures **256×256 thumbnails** with the subject fitted to the frame
+- Removes backgrounds and normalizes USD scale/units where applicable
+- Organizes outputs into a consistent folder layout compatible with the Isaac Sim asset library extension
+- Packages everything into a downloadable zip archive
+
+---
 
 ## Quick start
 
-1. Open the app.
-2. On the home screen, click the plus button to create a workflow.
-3. Choose a name, then pick a mode:
-   - **Ares** – single asset processing.
-   - **Libra** – bulk / folder processing.
-4. Configure any sorting rules (for sorted Libra workflows) and create the workflow.
-5. Click the workflow card to open its pipeline and run it.
-
-## Development
+1. Install dependencies and start the dev server:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+2. Open [http://localhost:3000](http://localhost:3000).
+3. Click the plus button to create a workflow.
+4. Choose a workflow type:
+   - **Ares** — single asset processing
+   - **Libra** — bulk / folder processing
+5. For Libra, choose **Sorted** to group assets by naming rules, or **Unsorted** to batch by size.
+6. Open the workflow and run the pipeline. Download the zip when it finishes.
+
+---
 
 ## Deployment
 
-This is a standard Next.js app ready for [Vercel](https://vercel.com):
+This is a standard **Next.js** static-compatible app. To deploy to **Vercel**, push this repository and import it from the Vercel dashboard, or use the Vercel CLI:
 
 ```bash
 npm run build
 ```
 
-## Workflows
+The build produces static output ready for Vercel's default Next.js preset.
 
-A workflow is a saved project. Each workflow remembers its name, type, and (for Libra) sorting rules. Workflow cards appear on the home screen and can be opened, run, or deleted.
+---
 
-Workflow metadata is stored in the browser's `localStorage`. Clearing site data will reset workflows.
+## Workflow types
 
-## Pipelines
+### Ares — single asset import
 
-### Ares – single asset import
+Use Ares for one-off assets.
 
-Use Ares when you want to process one asset at a time.
+1. Upload a 3D model (`USD`, `USDA`, `USDC`, `OBJ`, `GLB`, `GLTF`).
+2. Upload one or more textures (`BaseColor`, `Emissive`, `Normal`, `ORM`).
+3. Run the pipeline.
+4. Ares loads the model, applies textures, captures a 256×256 thumbnail, removes the background, fits the subject to the frame, normalizes USDA scale/units if needed, and bundles the result into a zip.
 
-1. Upload a 3D model (USD, OBJ, GLB, GLTF).
-2. Upload one or more textures (Base Color, Emissive, Normal, ORM).
-3. Run the pipeline. Ares loads the model, applies the textures, captures a 256×256 thumbnail, removes the background, fits the subject to the frame, and bundles everything into a zip.
-
-The output zip contains:
+Output structure:
 
 ```text
 {assetName}/
@@ -57,32 +72,32 @@ The output zip contains:
       {model}.png
 ```
 
-### Libra – bulk asset import
+### Libra — bulk asset import
 
 Use Libra when you have a folder of assets to process together.
 
-1. Choose a directory containing `.usd` / `.usda` models and matching `_BaseColor`, `_Emissive`, `_Normal`, and `_ORM` textures.
-2. Libra scans the directory, pairs models with their textures, and splits them into batches.
-3. Each asset is rendered, thumbnailed, and bundled.
-4. The final zip contains either one shared output tree (unsorted) or named batch folders (sorted).
+1. Upload a directory containing `.usd` / `.usda` models and matching `_BaseColor`, `_Emissive`, `_Normal`, and `_ORM` textures.
+2. Libra scans the directory, pairs models with their textures, and splits them into batches or sorted groups.
+3. Each asset is rendered, thumbnailed, normalized if applicable, and bundled.
+4. The final zip contains either named group folders (sorted) or a single shared tree (unsorted).
 
 #### Sorted Libra
 
-Sorted workflows use rules to place assets into named folders. Each listed rule defines a target directory and one or more conditions. A file matches a directory if any of its conditions are true. Files that match nothing go into the unlisted fallback directory.
+Sorted workflows use rules to place assets into named folders. Each rule defines a target directory and one or more conditions. A file matches if **any** condition is true. Files that match nothing go into the unlisted fallback directory.
 
-Conditions support:
+Supported condition types:
 
-- contains
-- starts with
-- ends with
-- equals
-- regex
+- `contains`
+- `starts with`
+- `ends with`
+- `equals`
+- `regex`
 
 Example:
 
-- Directory `Heroes` with conditions `contains hero` and `starts with chr`.
-- Directory `Props` with condition `starts with prop`.
-- Unlisted directory `Other` catches everything else.
+- Directory `Heroes` with conditions `contains hero` and `starts with chr`
+- Directory `Props` with condition `starts with prop`
+- Unlisted directory `Other` catches everything else
 
 Output:
 
@@ -111,15 +126,33 @@ Unsorted workflows keep the original order and batch assets by size. The final z
     .thumbs/256x256/{asset}.png
 ```
 
-## Keyboard / controls
+---
 
-- **Run / pause** – top-right play button inside a pipeline.
-- **Download** – available after the pipeline finishes.
-- **Back** – top-left arrow returns to the workflow list.
+## Storage
 
-## Notes
+Workflow metadata is stored in the browser's `localStorage` under the key `alm-workflows`. Clearing site data will reset your workflow list, but it will not affect any downloaded zips.
 
-- The app stores workflow metadata in `localStorage`.
-- Pipelines run entirely in the client browser using a local Three.js viewer.
-- Exporting does not require an internet connection.
-# Cerberus
+---
+
+## Controls
+
+- **Run / Pause** — top-right play/pause button inside a pipeline
+- **Download** — appears after the pipeline completes
+- **Back** — top-left arrow returns to the workflow list
+
+---
+
+## Tech stack
+
+- [Next.js](https://nextjs.org/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Three.js](https://threejs.org/) — local 3D preview and screenshot capture
+- [JSZip](https://stuk.github.io/jszip/) — client-side zip generation
+
+---
+
+## License / attribution
+
+Developed by **Wipro Smart Robotics Lab (SRL)**. 

@@ -280,35 +280,61 @@ export const ThreeViewer = forwardRef<ThreeViewerHandle, Props>(function ThreeVi
     if (active.length === 0) return
 
     let loaded = 0
+    let failed = 0
     function checkDone() {
       loaded++
-      if (loaded >= active.length) onTexturesAppliedRef.current?.()
+      if (loaded + failed >= active.length) {
+        if (failed === 0) {
+          onTexturesAppliedRef.current?.()
+        } else {
+          setErrorMsg(`Failed to load ${failed} texture(s)`)
+        }
+      }
     }
 
     for (const key of active) {
       const url = texturesRef.current[key]!
-      texLoader.load(url, (tex) => {
-        tex.wrapS = THREE.RepeatWrapping
-        tex.wrapT = THREE.RepeatWrapping
+      texLoader.load(
+        url,
+        (tex) => {
+          tex.wrapS = THREE.RepeatWrapping
+          tex.wrapT = THREE.RepeatWrapping
 
-        obj.traverse((child) => {
-          if (!(child instanceof THREE.Mesh)) return
-          const mat = child.material as THREE.MeshStandardMaterial
-          if (key === "baseColor") { mat.map = tex; mat.color.set(0xffffff) }
-          else if (key === "emissive") { mat.emissiveMap = tex; mat.emissive.set(0xffffff); mat.emissiveIntensity = 1 }
-          else if (key === "normal") { mat.normalMap = tex }
-          else if (key === "orm") { mat.aoMap = tex; mat.roughnessMap = tex; mat.metalnessMap = tex }
-          mat.needsUpdate = true
-        })
+          obj.traverse((child) => {
+            if (!(child instanceof THREE.Mesh)) return
+            const materials = Array.isArray(child.material) ? child.material : [child.material]
+            for (const mat of materials) {
+              if (!("map" in mat)) continue
+              if (key === "baseColor") { mat.map = tex; if ("color" in mat) (mat as THREE.MeshStandardMaterial).color.set(0xffffff) }
+              else if (key === "emissive" && "emissiveMap" in mat && "emissive" in mat) {
+                mat.emissiveMap = tex
+                ;(mat as THREE.MeshStandardMaterial).emissive.set(0xffffff)
+                ;(mat as THREE.MeshStandardMaterial).emissiveIntensity = 1
+              }
+              else if (key === "normal" && "normalMap" in mat) { mat.normalMap = tex }
+              else if (key === "orm" && "roughnessMap" in mat && "metalnessMap" in mat) {
+                mat.aoMap = tex
+                mat.roughnessMap = tex
+                mat.metalnessMap = tex
+              }
+              mat.needsUpdate = true
+            }
+          })
 
-        checkDone()
-      })
+          checkDone()
+        },
+        undefined,
+        () => {
+          failed++
+          checkDone()
+        }
+      )
     }
   }, [])
 
   useEffect(() => {
     applyTextures()
-  }, [applyTextures])
+  }, [applyTextures, textures])
 
   useEffect(() => {
     if (!modelUrl || !sceneRef.current) return
@@ -401,10 +427,10 @@ export const ThreeViewer = forwardRef<ThreeViewerHandle, Props>(function ThreeVi
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div ref={containerRef} className="w-full h-full bg-black rounded-xl overflow-hidden" />
+      <div ref={containerRef} className="w-full h-full bg-muted rounded-xl overflow-hidden border border-border" />
       <button
         onClick={resetCamera}
-        className="absolute bottom-3 right-3 size-7 flex items-center justify-center rounded-md bg-black/50 hover:bg-black/70 text-white/70 hover:text-white transition-all border border-white/10"
+        className="absolute bottom-3 right-3 size-7 flex items-center justify-center rounded-md bg-foreground/70 hover:bg-foreground text-background hover:text-background transition-all border border-border"
         title="Reset camera view"
       >
         <Lock className="size-3.5" />

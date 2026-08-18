@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, Suspense, type ChangeEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { AnimatePresence, motion } from "framer-motion"
 import {
   ArrowLeft,
   Folder,
@@ -60,8 +61,31 @@ const EXTRACT_MS = 120
 const DIR_STEP_MS = 80
 const ZIP_BUILD_MS = 200
 
+const springTransition = { type: "spring", stiffness: 400, damping: 25 } as const
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.035 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: springTransition },
+}
+const fadePulseVariants = {
+  initial: { opacity: 0.55, scale: 1 },
+  animate: { opacity: [0.55, 0.85, 0.55], scale: [1, 1.01, 1], transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" as const } },
+}
+
 function EmptyQueues() {
-  return <p className="p-1 text-[9px] text-white/30">Empty</p>
+  return (
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.35 }}
+      transition={{ duration: 0.5 }}
+      className="p-1 text-[9px] text-muted-foreground/50"
+    >
+      Empty
+    </motion.p>
+  )
 }
 
 function BatchRow({
@@ -74,20 +98,23 @@ function BatchRow({
   done?: boolean
 }) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: -6 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={springTransition}
       className={cn(
         "flex items-center gap-1.5 rounded-md px-1.5 py-1",
-        done ? "bg-emerald-400/10" : "bg-white/[0.03]"
+        done ? "bg-emerald-500/10" : "bg-white"
       )}
     >
-      <span className="shrink-0 text-[9px] text-white/40">#{index + 1}</span>
-      <span className="min-w-0 flex-1 truncate text-[9px] text-white/70">
+      <span className="shrink-0 text-[9px] text-muted-foreground/60">#{index + 1}</span>
+      <span className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground/90">
         {batch.length} assets
       </span>
-      <span className="shrink-0 text-[9px] text-white/40">
+      <span className="shrink-0 text-[9px] text-muted-foreground/60">
         {formatBytes(batch.reduce((s, a) => s + a.totalSize, 0))}
       </span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -101,14 +128,19 @@ function QueueSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
+    <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
       <div className="flex items-center justify-between px-2 py-1">
-        <span className="text-[9px] uppercase tracking-wider text-white/40">{title}</span>
-        <span className="text-[9px] text-white/40">{count}</span>
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">{title}</span>
+        <span className="text-[9px] text-muted-foreground/60">{count}</span>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+      >
         {children}
-      </div>
+      </motion.div>
     </div>
   )
 }
@@ -226,14 +258,14 @@ function DirTree({ node, depth = 0 }: { node: TreeNode; depth?: number }) {
             style={{ paddingLeft: depth * 10 }}
           >
             {child.type === "folder" ? (
-              <Folder className="size-2.5 shrink-0 text-amber-300/80" />
+              <Folder className="size-2.5 shrink-0 text-amber-500/80" />
             ) : (
-              <FileIcon className="size-2.5 shrink-0 text-white/40" />
+              <FileIcon className="size-2.5 shrink-0 text-muted-foreground/60" />
             )}
             <span
               className={cn(
                 "truncate",
-                child.type === "folder" ? "text-white/50" : "text-white/60"
+                child.type === "folder" ? "text-muted-foreground/70" : "text-muted-foreground/80"
               )}
             >
               {child.name}
@@ -270,43 +302,46 @@ type StageCardProps = {
 
 function StageCard({ index, status, icon: Icon, label, desc, className, onClick, body }: StageCardProps) {
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -3, boxShadow: "0 12px 40px -12px rgba(33,31,84,0.10)" }}
+      whileTap={{ scale: 0.985 }}
+      transition={springTransition}
       className={cn(
-        "group flex flex-col gap-2.5 overflow-hidden rounded-2xl border bg-white/[0.04] p-3.5 backdrop-blur-xl transition-all duration-200 hover:scale-[1.015] hover:border-white/40 hover:bg-white/[0.08] hover:shadow-[0_0_40px_-12px_rgba(255,255,255,0.35)]",
-        onClick && "cursor-pointer",
-        status === "running"
-          ? "border-emerald-400/40 bg-emerald-400/5"
-          : status === "done"
-            ? "border-emerald-400/30"
-            : "border-white/10",
+        "group flex flex-col gap-2.5 overflow-hidden rounded-2xl border bg-white p-3.5 backdrop-blur-xl transition-all duration-200 hover:border-border hover:bg-muted",
+        onClick && "data-cursor-hover",
+          status === "running"
+            ? "border-emerald-500/40 bg-emerald-500/5"
+            : status === "done"
+              ? "border-emerald-500/30"
+              : "border-border",
         className
       )}
       onClick={onClick}
     >
       <div className="flex items-center gap-2.5">
-        <Icon className="size-4 shrink-0 text-white/70 transition-colors duration-300 group-hover:text-white" />
+        <Icon className="size-4 shrink-0 text-muted-foreground/90 transition-colors duration-300 group-hover:text-foreground" />
         <div className="min-w-0">
-          <p className="text-xs font-medium text-white truncate">{label}</p>
-          <p className="text-[10px] text-white/50">Stage {index + 1} of 5</p>
+          <p className="text-xs font-medium text-foreground truncate">{label}</p>
+          <p className="text-[10px] text-muted-foreground/70">Stage {index + 1} of 5</p>
         </div>
         <span
           className={cn(
             "ml-auto size-2 shrink-0 rounded-full transition-colors duration-300",
-            status === "running"
-              ? "bg-emerald-400"
-              : status === "done"
-                ? "bg-emerald-400"
-                : status === "error"
-                  ? "bg-red-500"
-                  : "bg-zinc-500"
+              status === "running"
+                ? "bg-emerald-500"
+                : status === "done"
+                  ? "bg-emerald-500"
+                  : status === "error"
+                    ? "bg-red-500"
+                    : "bg-muted-foreground/50"
           )}
         />
       </div>
-      <p className="text-[10px] text-white/55">{desc}</p>
+      <p className="text-[10px] text-muted-foreground/70">{desc}</p>
       {body ?? (
-        <div className="flex min-h-[100px] flex-1 items-center justify-center rounded-xl bg-black/20" />
+        <div className="flex min-h-[100px] flex-1 items-center justify-center rounded-xl bg-muted" />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -909,62 +944,94 @@ function LibraPipeline() {
   }
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden bg-black">
-      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 shrink-0 bg-black">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springTransition}
+      className="relative z-10 flex flex-col h-dvh overflow-hidden bg-background"
+    >
+      <header className="flex items-center gap-3 px-4 py-2.5 border-b border-border/40 shrink-0 bg-background">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <button type="button" onClick={() => router.push("/")} className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200">
+          <motion.button
+            type="button"
+            onClick={() => router.push("/")}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={springTransition}
+            className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+          >
             <ArrowLeft className="size-3.5" />
-          </button>
+          </motion.button>
           <Folder className="size-3.5 text-foreground shrink-0" />
           <span className="text-sm font-semibold tracking-tight text-foreground truncate">{assetName}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
+          <motion.button
             type="button"
             onClick={toggleRun}
             aria-label={running && !paused ? "Pause workflow" : "Run workflow"}
             title={running && !paused ? "Pause" : "Run"}
-            className="flex items-center justify-center p-1 text-white/80 transition-transform duration-200 hover:scale-125 hover:text-white"
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.85 }}
+            transition={springTransition}
+            className="flex items-center justify-center p-1 text-foreground transition-transform duration-200 hover:text-foreground"
           >
             {running && !paused ? (
               <Pause className="size-4" />
             ) : (
               <Play className="size-4 ml-px" />
             )}
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             onClick={downloadZip}
             aria-label="Download final archive"
             title={zip ? "Download final archive" : "Available after the pipeline completes"}
             disabled={zip === null}
+            whileHover={zip ? { scale: 1.2 } : undefined}
+            whileTap={zip ? { scale: 0.85 } : undefined}
+            transition={springTransition}
             className={cn(
               "flex items-center justify-center p-1 transition-all duration-200",
               zip
-                ? "cursor-pointer text-white/80 hover:scale-125 hover:text-white"
-                : "cursor-not-allowed text-white/25"
+                ? "text-foreground hover:text-foreground"
+                : "text-muted-foreground/40"
             )}
           >
             <Download className="size-4" />
-          </button>
+          </motion.button>
         </div>
       </header>
 
       <div className="flex flex-1 min-h-0">
-          <div className="flex flex-1 min-h-0 items-start gap-4 overflow-hidden px-4 py-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.35 }}
+            className="flex flex-1 min-h-0 items-start gap-4 overflow-hidden px-4 py-4"
+          >
           {STAGES.map((stage, i) => {
             const sizeCls = "h-full min-w-0 flex-1 basis-0 max-w-[260px]"
             if (i === 0) {
               return (
-                <div key={stage.id} className="flex h-full min-w-0 flex-1 basis-0 max-w-[260px] flex-col gap-2.5">
-                    <button
+                <motion.div
+                  key={stage.id}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex h-full min-w-0 flex-1 basis-0 max-w-[260px] flex-col gap-2.5"
+                >
+                  <motion.button
                     type="button"
                     onClick={() => dirInputRef.current?.click()}
-                    className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.04] text-[11px] font-medium text-white/70 transition-all duration-200 hover:scale-[1.015] hover:border-white/50 hover:bg-white/[0.08] hover:text-white"
+                    whileHover={{ scale: 1.02, borderColor: "rgba(33,31,84,0.20)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={springTransition}
+                    className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-white text-[11px] font-medium text-muted-foreground/90 transition-all duration-200 hover:bg-muted hover:text-foreground"
                   >
                     <FolderUp className="size-3.5" />
                     Upload Directory
-                  </button>
+                  </motion.button>
                   <input
                     ref={dirInputRef}
                     type="file"
@@ -982,24 +1049,27 @@ function LibraPipeline() {
                     label={stage.label}
                     desc={stage.desc}
                     body={
-                      <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-xl bg-black/20 p-2">
+                      <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-xl bg-muted p-2">
                         {isSorted && (
-                          <button
+                          <motion.button
                             type="button"
                             onClick={() => setSubCard("rules")}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={springTransition}
                             className={cn(
                               "flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[10px] transition-colors duration-200",
-                              rulesDirty
-                                ? "bg-amber-400/10 text-amber-300 hover:bg-amber-400/15"
-                                : "text-white/55 hover:bg-white/[0.05]"
+            rulesDirty
+                ? "bg-amber-400/10 text-amber-700 hover:bg-amber-400/15"
+                : "text-muted-foreground/70 hover:bg-muted"
                             )}
                           >
                             <SlidersHorizontal className="size-3 shrink-0" />
                             <span className="truncate">Edit Sorting Rules</span>
-                          </button>
+                          </motion.button>
                         )}
                         {PREPROCESS_FUNCS.map((fn) => (
-                          <button
+                          <motion.button
                             key={fn}
                             type="button"
                             onClick={() => {
@@ -1008,79 +1078,101 @@ function LibraPipeline() {
                               else if (fn === "Asset Creation") setResultsFilter("all")
                               else setSubCard("batching")
                             }}
+                            whileHover={{ x: 2 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={springTransition}
                             className={cn(
                               "flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[10px] transition-colors duration-200",
-                              fnStatuses[fn] === "running"
-                                ? "bg-emerald-400/10 text-emerald-300"
-                                : fnStatuses[fn] === "done"
-                                  ? "text-white/60 hover:bg-white/[0.05]"
-                                  : "text-white/45 hover:bg-white/[0.05]"
+                                fnStatuses[fn] === "running"
+                                  ? "bg-emerald-500/10 text-emerald-700"
+                                  : fnStatuses[fn] === "done"
+                                    ? "text-muted-foreground/80 hover:bg-muted"
+                                    : "text-muted-foreground/60 hover:bg-muted"
                             )}
                           >
-                            <span
+                            <motion.span
+                              initial={false}
+                              animate={fnStatuses[fn] === "running" ? { scale: [1, 1.35, 1] } : { scale: 1 }}
+                              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                               className={cn(
                                 "size-1.5 shrink-0 rounded-full transition-colors duration-300",
                                 fnStatuses[fn] === "running"
-                                  ? "bg-emerald-400"
+                                  ? "bg-emerald-500"
                                   : fnStatuses[fn] === "done"
-                                    ? "bg-emerald-400/70"
-                                    : "bg-zinc-600"
+                                    ? "bg-emerald-500/70"
+                                    : "bg-muted-foreground/40"
                               )}
                             />
                             <span className="truncate">{fn}</span>
-                          </button>
+                          </motion.button>
                         ))}
-                        <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
+                        <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
                           <div className="flex items-center justify-between px-2 py-1">
-                            <span className="text-[9px] uppercase tracking-wider text-white/40">
+                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground/60">
                               {isSorted ? "Groups" : "Batches"}
                             </span>
-                            <span className="text-[9px] text-white/40">{batches.length}</span>
+                            <span className="text-[9px] text-muted-foreground/60">{batches.length}</span>
                           </div>
-                          <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+                          <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+                          >
                             {batches.length === 0 ? (
-                              <p className="p-1 text-[9px] text-white/30">No {isSorted ? "groups" : "batches"} yet</p>
+                              <motion.p
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                className="p-1 text-[9px] text-muted-foreground/50"
+                              >
+                                No {isSorted ? "groups" : "batches"} yet
+                              </motion.p>
                             ) : (
                               batches.map((b, i) => (
-                                <div
+                                <motion.div
                                   key={i}
-                                  className="flex items-center gap-1.5 rounded-md bg-white/[0.03] px-1.5 py-1"
+                                  variants={itemVariants}
+                                  className="flex items-center gap-1.5 rounded-md bg-white px-1.5 py-1"
                                 >
-                                  <span className="shrink-0 text-[9px] text-white/40">#{i + 1}</span>
-                                  <span className="min-w-0 flex-1 truncate text-[9px] text-white/70">
+                                  <span className="shrink-0 text-[9px] text-muted-foreground/60">#{i + 1}</span>
+                                  <span className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground/90">
                                     {isSorted ? sortedGroups[i]?.name : `${b.length} assets`}
                                   </span>
-                                  <span className="shrink-0 text-[9px] text-white/40">
+                                  <span className="shrink-0 text-[9px] text-muted-foreground/60">
                                     {isSorted
                                       ? `${b.length} assets`
                                       : formatBytes(b.reduce((s, a) => s + a.totalSize, 0))}
                                   </span>
-                                </div>
+                                </motion.div>
                               ))
                             )}
-                          </div>
+                          </motion.div>
                         </div>
                       </div>
                     }
                   />
-                  <div className="grid shrink-0 grid-cols-3 gap-2">
+                  <motion.div variants={itemVariants} className="grid shrink-0 grid-cols-3 gap-2">
                     {SUMMARY.map((s) => (
-                      <button
+                      <motion.button
                         key={s.status}
                         type="button"
                         onClick={() => setResultsFilter(s.status)}
+                        whileHover={{ y: -3, scale: 1.03, boxShadow: "0 10px 30px -10px rgba(33,31,84,0.10)" }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={springTransition}
                         className={cn(
-                          "flex aspect-square w-full flex-col items-center justify-center rounded-xl border-2 bg-white/[0.04] backdrop-blur-xl transition-all duration-200 hover:scale-[1.02]",
+                          "flex aspect-square w-full flex-col items-center justify-center rounded-xl border-2 bg-white backdrop-blur-xl transition-all duration-200",
                           s.border
                         )}
                       >
-                        <span className="text-base font-semibold text-white">
+                        <span className="text-base font-semibold text-foreground">
                           {counts[s.status]}
                         </span>
-                      </button>
+                      </motion.button>
                     ))}
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               )
             }
             return (
@@ -1094,7 +1186,7 @@ function LibraPipeline() {
                 desc={stage.desc}
                 body={
                   stage.id === "scheduling" ? (
-                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-black/20 p-2">
+                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-muted p-2">
                       <QueueSection title="Ready Queue" count={readyQueue.length}>
                         {readyQueue.length === 0 ? (
                           <EmptyQueues />
@@ -1109,24 +1201,27 @@ function LibraPipeline() {
                           <EmptyQueues />
                         ) : (
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5 rounded-md bg-emerald-400/10 px-1.5 py-1">
-                              <span className="size-1.5 shrink-0 rounded-full bg-emerald-400" />
-                              <span className="min-w-0 flex-1 truncate text-[9px] text-emerald-200">
+                            <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-1.5 py-1">
+                              <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+                              <span className="min-w-0 flex-1 truncate text-[9px] text-emerald-700">
                                 {runningQueue.length} assets
                               </span>
                             </div>
                             {runningQueue.map((a) => (
-                              <div
+                              <motion.div
                                 key={a.id}
+                                initial={{ opacity: 0, x: -6 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={springTransition}
                                 className={cn(
                                   "truncate rounded-md px-1.5 py-0.5 text-[9px]",
                                   runningAssetId === a.id
-                                    ? "bg-emerald-400/10 text-emerald-200"
-                                    : "text-white/50"
+                                    ? "bg-emerald-500/10 text-emerald-700"
+                                    : "text-muted-foreground/70"
                                 )}
                               >
                                 {a.base}
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
                         )}
@@ -1142,50 +1237,81 @@ function LibraPipeline() {
                       </QueueSection>
                     </div>
                   ) : stage.id === "execution" ? (
-                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-black/20 p-2">
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-muted p-2">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Asset Initializer
                         </div>
-                        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+                        >
                           {runningQueue.length === 0 ? (
-                            <p className="p-1 text-[9px] text-white/30">Idle</p>
+                            <motion.p
+                              variants={fadePulseVariants}
+                              initial="initial"
+                              animate="animate"
+                              className="p-1 text-[9px] text-muted-foreground/50"
+                            >
+                              Idle
+                            </motion.p>
                           ) : (
                             runningQueue.map((a) => (
-                              <div
+                              <motion.div
                                 key={a.id}
+                                variants={itemVariants}
                                 className={cn(
                                   "truncate rounded-md px-1.5 py-0.5 text-[9px]",
                                   currentAssetId === a.id
-                                    ? "bg-emerald-400/10 text-emerald-200"
-                                    : "text-white/50"
+                                    ? "bg-emerald-500/10 text-emerald-700"
+                                    : "text-muted-foreground/70"
                                 )}
                               >
                                 {a.base}
-                              </div>
+                              </motion.div>
                             ))
                           )}
-                        </div>
+                        </motion.div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Ares
                         </div>
                         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 p-1.5">
-                          {currentStep === "ares" && currentAsset ? (
-                            <>
-                              <Cpu className="size-3 text-white/50" />
-                              <p className="truncate text-[9px] text-emerald-300">
-                                Rendering {currentAsset.base} at 4K
-                              </p>
-                            </>
-                          ) : (
-                            <p className="text-[9px] text-white/30">Idle</p>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {currentStep === "ares" && currentAsset ? (
+                              <motion.div
+                                key="ares-active"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={springTransition}
+                                className="flex flex-col items-center justify-center gap-1"
+                              >
+                                <Cpu className="size-3 text-muted-foreground/70" />
+                                <p className="truncate text-[9px] text-emerald-700">
+                                  Rendering {currentAsset.base} at 4K
+                                </p>
+                              </motion.div>
+                            ) : (
+                              <motion.p
+                                key="ares-idle"
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground/50"
+                              >
+                                Idle
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Thumbnail Processor
                         </div>
                         <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-1 p-1.5">
@@ -1214,185 +1340,312 @@ function LibraPipeline() {
                               />
                             </div>
                           )}
-                          {thumbUrl ? (
-                            <>
-                              <div className="flex aspect-square max-h-[72px] w-full max-w-[72px] items-center justify-center overflow-hidden rounded-lg border-2 border-white/15 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black">
-                                <img
-                                  src={thumbUrl}
-                                  alt={currentThumb?.base ?? ""}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                              <p className="truncate text-[9px] text-emerald-300">
-                                {currentThumb?.base ?? ""}
-                              </p>
-                              <p className="text-[8px] text-white/40">256 × 256</p>
-                            </>
-                          ) : (
-                            <p className="text-[9px] text-white/30">Idle</p>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {thumbUrl ? (
+                              <motion.div
+                                key="thumb"
+                                initial={{ opacity: 0, scale: 0.92 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.96 }}
+                                transition={springTransition}
+                                className="flex flex-col items-center justify-center gap-1"
+                              >
+                                <div className="flex aspect-square max-h-[72px] w-full max-w-[72px] items-center justify-center overflow-hidden rounded-lg border-2 border-border bg-gradient-to-br from-muted via-secondary to-background">
+                                  <img
+                                    src={thumbUrl}
+                                    alt={currentThumb?.base ?? ""}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                                  <p className="truncate text-[9px] text-emerald-700">
+                                    {currentThumb?.base ?? ""}
+                                  </p>
+                                <p className="text-[8px] text-muted-foreground/60">256 × 256</p>
+                              </motion.div>
+                            ) : (
+                              <motion.p
+                                key="thumb-idle"
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground/50"
+                              >
+                                Idle
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Normalizer
                         </div>
                         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 p-1.5">
-                          {currentStep === "normalize" && currentAsset ? (
-                            <>
-                              <ScanLine className="size-3 text-white/50" />
-                              <p className="truncate text-[9px] text-emerald-300">
-                                Scaling {currentAsset.base} to (1, 1, 1)
-                              </p>
-                            </>
-                          ) : (
-                            <p className="text-[9px] text-white/30">Idle</p>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {currentStep === "normalize" && currentAsset ? (
+                              <motion.div
+                                key="norm-active"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={springTransition}
+                                className="flex flex-col items-center justify-center gap-1"
+                              >
+                                <ScanLine className="size-3 text-muted-foreground/70" />
+                                  <p className="truncate text-[9px] text-emerald-700">
+                                    Scaling {currentAsset.base} to (1, 1, 1)
+                                  </p>
+                              </motion.div>
+                            ) : (
+                              <motion.p
+                                key="norm-idle"
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground/50"
+                              >
+                                Idle
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>
                   ) : stage.id === "compile" ? (
-                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-black/20 p-2">
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-muted p-2">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Bundler
                         </div>
-                        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+                        >
                           {bundledAssets.length === 0 ? (
-                            <p className="p-1 text-[9px] text-white/30">Idle</p>
+                            <motion.p
+                              variants={fadePulseVariants}
+                              initial="initial"
+                              animate="animate"
+                              className="p-1 text-[9px] text-muted-foreground/50"
+                            >
+                              Idle
+                            </motion.p>
                           ) : (
                             bundledAssets.map((name, bi) => (
-                              <div
+                              <motion.div
                                 key={bi}
-                                className="truncate rounded-md bg-white/[0.03] px-1.5 py-0.5 text-[9px] text-white/60"
+                                variants={itemVariants}
+                                className="truncate rounded-md bg-white px-1.5 py-0.5 text-[9px] text-foreground/80"
                               >
                                 {name}
-                              </div>
+                              </motion.div>
                             ))
                           )}
-                        </div>
+                        </motion.div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Director
                         </div>
                         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 p-1.5">
                           <div className="flex flex-col gap-0.5 font-mono text-[8px] leading-tight">
                             {isSorted ? (
                               sortedGroups.map((g) => (
-                                <div key={g.name} className="flex flex-col">
+                                <motion.div
+                                  key={g.name}
+                                  initial={{ opacity: 0, x: -4 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={springTransition}
+                                  className="flex flex-col"
+                                >
                                   <div className="flex items-center gap-1" style={{ paddingLeft: 0 }}>
-                                    <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                    <span className="text-white/80">{g.name}/</span>
-                                  </div>
-                                  <div className="flex items-center gap-1" style={{ paddingLeft: 8 }}>
-                                    <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                    <span className="text-white/50">.thumbs/</span>
+                                    <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                  <span className="text-foreground">{g.name}/</span>
+                                </div>
+                                <div className="flex items-center gap-1" style={{ paddingLeft: 8 }}>
+                                  <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                    <span className="text-muted-foreground/70">.thumbs/</span>
                                   </div>
                                   <div className="flex items-center gap-1" style={{ paddingLeft: 16 }}>
-                                    <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                    <span className="text-white/50">256x256/</span>
+                                    <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                    <span className="text-muted-foreground/70">256x256/</span>
                                   </div>
-                                </div>
+                                </motion.div>
                               ))
                             ) : (
                               <>
                                 <div className="flex items-center gap-1">
-                                  <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                  <span className="text-white/80">{assetName}/</span>
+                                  <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                  <span className="text-foreground">{assetName}/</span>
                                 </div>
                                 <div className="flex items-center gap-1 pl-2">
-                                  <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                  <span className="text-white/50">.thumbs/</span>
+                                  <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                  <span className="text-muted-foreground/70">.thumbs/</span>
                                 </div>
                                 <div className="flex items-center gap-1 pl-4">
-                                  <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                  <span className="text-white/50">256x256/</span>
+                                  <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                  <span className="text-muted-foreground/70">256x256/</span>
                                 </div>
                               </>
                             )}
                           </div>
-                          {currentStep === "bundler" && currentAsset ? (
-                            <p className="truncate text-[9px] text-emerald-300">
-                              Directing {currentAsset.base}
-                            </p>
-                          ) : directorReady ? (
-                            <p className="text-[9px] text-emerald-300">Structure ready</p>
-                          ) : (
-                            <p className="text-[9px] text-white/30">Idle</p>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {currentStep === "bundler" && currentAsset ? (
+                              <motion.p
+                                key="dir-active"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={springTransition}
+                                className="truncate text-[9px] text-emerald-700"
+                              >
+                                Directing {currentAsset.base}
+                              </motion.p>
+                            ) : directorReady ? (
+                              <motion.p
+                                key="dir-ready"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={springTransition}
+                                className="text-[9px] text-emerald-700"
+                              >
+                                Structure ready
+                              </motion.p>
+                            ) : (
+                              <motion.p
+                                key="dir-idle"
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground/50"
+                              >
+                                Idle
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Extractor
                         </div>
-                        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5">
+                        <motion.div
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1.5"
+                        >
                           {extracted.length === 0 ? (
-                            <p className="p-1 text-[9px] text-white/30">Idle</p>
+                            <motion.p
+                              variants={fadePulseVariants}
+                              initial="initial"
+                              animate="animate"
+                              className="p-1 text-[9px] text-muted-foreground/50"
+                            >
+                              Idle
+                            </motion.p>
                           ) : (
                             extracted.map((e) => (
-                              <div
+                              <motion.div
                                 key={e.id}
-                                className="truncate rounded-md bg-white/[0.03] px-1.5 py-0.5 text-[9px] text-white/60"
+                                variants={itemVariants}
+                                className="truncate rounded-md bg-white px-1.5 py-0.5 text-[9px] text-foreground/80"
                               >
                                 {e.name}
-                              </div>
+                              </motion.div>
                             ))
                           )}
-                        </div>
+                        </motion.div>
                       </div>
                     </div>
                   ) : stage.id === "export" ? (
-                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-black/20 p-2">
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                    <div className="flex min-h-0 flex-1 flex-col gap-1.5 rounded-xl bg-muted p-2">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Move
                         </div>
                         <div className="flex min-h-0 flex-1 flex-col items-start justify-center gap-1 overflow-y-auto p-1.5">
                           {moved.length === 0 ? (
-                            <p className="text-[9px] text-white/30">Idle</p>
+                            <motion.p
+                              variants={fadePulseVariants}
+                              initial="initial"
+                              animate="animate"
+                              className="text-[9px] text-muted-foreground/50"
+                            >
+                              Idle
+                            </motion.p>
                           ) : (
                             <div className="flex flex-col gap-0.5 font-mono text-[8px] leading-tight">
                               {isSorted ? (
                                 sortedGroups.map((g) => (
                                   <div key={g.name} className="flex items-center gap-1">
-                                    <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                    <span className="text-white/80">{g.name}/</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="flex items-center gap-1">
-                                  <Folder className="size-2.5 shrink-0 text-amber-300/80" />
-                                  <span className="text-white/80">{assetName}/</span>
+                                  <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                  <span className="text-foreground">{g.name}/</span>
                                 </div>
-                              )}
+                              ))
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <Folder className="size-2.5 shrink-0 text-amber-500/80" />
+                                <span className="text-foreground">{assetName}/</span>
+                              </div>
+                            )}
                               <DirTree node={moveTree} depth={1} />
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-black/20">
-                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-white/40">
+                      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-muted">
+                        <div className="px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground/60">
                           Download
                         </div>
                         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 p-1.5">
-                          {zipping ? (
-                            <>
-                              <Loader2 className="size-3 animate-spin text-white/50" />
-                              <p className="text-[9px] text-white/40">
-                                Generating {assetName}.zip…
-                              </p>
-                            </>
-                          ) : zip ? (
-                            <>
-                              <Archive className="size-3 text-emerald-300" />
-                              <p className="truncate text-[9px] text-emerald-300">{zip.name}</p>
-                              <p className="text-[8px] text-white/40">Ready to download</p>
-                            </>
-                          ) : (
-                            <p className="text-[9px] text-white/30">Idle</p>
-                          )}
+                          <AnimatePresence mode="wait">
+                            {zipping ? (
+                              <motion.div
+                                key="zipping"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={springTransition}
+                                className="flex flex-col items-center justify-center gap-1"
+                              >
+                                <Loader2 className="size-3 animate-spin text-muted-foreground/70" />
+                                <p className="text-[9px] text-muted-foreground/60">
+                                  Generating {assetName}.zip…
+                                </p>
+                              </motion.div>
+                            ) : zip ? (
+                              <motion.div
+                                key="zip-ready"
+                                initial={{ opacity: 0, scale: 0.92 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.96 }}
+                                transition={springTransition}
+                                className="flex flex-col items-center justify-center gap-1"
+                              >
+                                <Archive className="size-3 text-emerald-700" />
+                                <p className="truncate text-[9px] text-emerald-700">{zip.name}</p>
+                                <p className="text-[8px] text-muted-foreground/60">Ready to download</p>
+                              </motion.div>
+                            ) : (
+                              <motion.p
+                                key="zip-idle"
+                                variants={fadePulseVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit={{ opacity: 0 }}
+                                className="text-[9px] text-muted-foreground/50"
+                              >
+                                Idle
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>
@@ -1401,7 +1654,7 @@ function LibraPipeline() {
               />
             )
           })}
-          </div>
+          </motion.div>
 
         {subCard && (
           <SubCardModal
@@ -1433,42 +1686,58 @@ function LibraPipeline() {
           />
         )}
 
-        <aside className="flex w-[248px] shrink-0 flex-col border-l border-border/40 bg-black">
+        <motion.aside
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={springTransition}
+          className="flex w-[248px] shrink-0 flex-col border-l border-border/40 bg-background"
+        >
           <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/40">
-            <ScrollText className="size-3.5 text-white/70" />
-            <span className="text-xs font-medium text-white">Execution Logs</span>
-            <span className="ml-auto text-[10px] text-white/40">{logs.length}</span>
+            <ScrollText className="size-3.5 text-muted-foreground/90" />
+            <span className="text-xs font-medium text-foreground">Execution Logs</span>
+            <span className="ml-auto text-[10px] text-muted-foreground/60">{logs.length}</span>
           </div>
-          <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto p-3">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-1 flex-col gap-1.5 overflow-y-auto p-3"
+          >
             {logs.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center gap-2 text-white/30">
+              <motion.div
+                variants={fadePulseVariants}
+                initial="initial"
+                animate="animate"
+                className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground/50"
+              >
                 <Clock className="size-3.5" />
                 <span className="text-[11px]">No logs yet</span>
-              </div>
+              </motion.div>
             ) : (
               logs.map((log) => (
-                <div
+                <motion.div
                   key={log.id}
-                  className="flex items-start gap-2 rounded-lg bg-white/[0.04] px-2 py-1.5 text-[11px]"
+                  variants={itemVariants}
+                  className="flex items-start gap-2 rounded-lg bg-muted px-2 py-1.5 text-[11px]"
                 >
                   {log.type === "success" ? (
                     <CheckCircle className="size-3 text-emerald-500 shrink-0 mt-0.5" />
                   ) : log.type === "error" ? (
                     <AlertCircle className="size-3 text-destructive shrink-0 mt-0.5" />
                   ) : (
-                    <Clock className="size-3 text-white/40 shrink-0 mt-0.5" />
+                    <Clock className="size-3 text-muted-foreground/60 shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-white/80">{log.message}</p>
-                    <p className="text-[10px] text-white/35 mt-0.5">{log.timestamp}</p>
+                    <p className="truncate text-foreground">{log.message}</p>
+                    <p className="text-[10px] text-muted-foreground/50 mt-0.5">{log.timestamp}</p>
                   </div>
-                </div>
+                </motion.div>
               ))
             )}
-          </div>
-        </aside>
+          </motion.div>
+        </motion.aside>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,4 +1,5 @@
 import { Package, Download, Play, Loader2, AlertCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type ExportBarProps = {
   hasModel: boolean
@@ -10,6 +11,7 @@ type ExportBarProps = {
   onPlay: () => void
   running: boolean
   assetName: string
+  className?: string
 }
 
 export function ExportBar({
@@ -22,9 +24,10 @@ export function ExportBar({
   onPlay,
   running,
   assetName,
+  className,
 }: ExportBarProps) {
   return (
-    <div className="flex items-center gap-3 px-6 py-3 border-t border-border/40 bg-black">   
+    <div className={cn("flex items-center gap-3 px-6 py-3 border-t border-border/40 bg-background", className)}>   
       <Package className="size-4 text-muted-foreground" />
       <div className="flex-1 flex items-center gap-4">
         <span className="text-xs text-muted-foreground">{assetName}</span>
@@ -44,7 +47,7 @@ export function ExportBar({
       <button
         onClick={onPlay}
         disabled={running || !hasModel || !hasTextures}
-        className="flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-600 text-white hover:bg-emerald-500"
+        className="flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium transition-all duration-300 disabled:opacity-40 bg-emerald-600 text-primary-foreground hover:bg-emerald-500"
       >
         {running ? (
           <Loader2 className="size-3.5 animate-spin" />
@@ -56,7 +59,7 @@ export function ExportBar({
       <button
         onClick={onExport}
         disabled={!hasZip}
-        className="flex items-center gap-2 h-8 px-4 rounded-full text-[13px] font-medium transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed bg-foreground text-background hover:bg-foreground/80"
+        className="flex items-center gap-2 h-8 px-4 rounded-full text-[13px] font-medium transition-all duration-300 disabled:opacity-40 bg-primary text-primary-foreground hover:bg-primary/90"
       >
         <Download className="size-3.5" />
         Export ZIP

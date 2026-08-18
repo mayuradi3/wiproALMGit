@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
-import { Trash2, Layers, Zap } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import type { Workflow } from "@/lib/workflow-registry"
 import { listWorkflows, deleteWorkflow } from "@/app/actions"
-import { CerberusLogo } from "@/components/cerberus-logo"
+import { AlmLogo } from "@/components/alm-logo"
 import { CreateWorkflowPanel } from "@/components/workflow-create-panel"
 import { IconWebglShader } from "@/components/icon-webgl-shader"
+import { WorkflowGrid } from "@/components/workflow-grid"
+import { WorkflowCard } from "@/components/workflow-card"
 import { cn } from "@/lib/utils"
 
 function PlusGlyph({ strokeWidth = 2 }: { strokeWidth?: number }) {
@@ -18,12 +20,13 @@ function PlusGlyph({ strokeWidth = 2 }: { strokeWidth?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
+      strokeWidth={strokeWidth}
       strokeLinecap="butt"
       width="100%"
       height="100%"
       variants={{
-        rest: { rotate: 0, strokeWidth },
-        hover: { rotate: 90, strokeWidth: Math.min(strokeWidth + 1.5, 4) },
+        rest: { rotate: 0 },
+        hover: { rotate: 90 },
       }}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}
     >
@@ -80,7 +83,7 @@ export default function Home() {
   const isEmpty = loaded && workflows.length === 0
 
   return (
-    <div className="flex flex-col min-h-dvh overflow-x-hidden">
+    <div className="relative z-10 flex flex-col min-h-dvh overflow-x-hidden">
       <header className="flex items-center justify-between px-6 py-3.5">
         <motion.button
           type="button"
@@ -96,9 +99,9 @@ export default function Home() {
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", stiffness: 320, damping: 18 }}
         >
-          <CerberusLogo size={22} />
-          <span className="text-[15px] font-semibold tracking-tight text-foreground">
-            Cerberus
+          <AlmLogo size={34} />
+          <span className="text-[15px] font-medium tracking-wide text-foreground font-zen-dots">
+            ALM
           </span>
         </motion.button>
 
@@ -119,15 +122,28 @@ export default function Home() {
               whileTap={{ scale: 0.94 }}
             >
               <IconWebglShader
-                size={34}
+                size={51}
                 strokeWidth={2.5}
-                iconSize={18}
-                iconColor="#a1a1aa"
+                iconSize={24}
+                iconColor="#52525b"
+                innerTop="transparent"
+                innerBottom="transparent"
                 icon={<PlusGlyph strokeWidth={2} />}
               />
             </motion.button>
           </motion.div>
         )}
+
+        <motion.img
+          src="/srl-logo.png"
+          alt="Smart Robotics Lab"
+          width={90}
+          height={34}
+          className="object-contain"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: intro ? 0 : 1, scale: intro ? 0.8 : 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        />
       </header>
 
       <main className="flex-1 flex flex-col p-6 min-h-0 overflow-x-hidden">
@@ -156,13 +172,15 @@ export default function Home() {
                   animate="rest"
                   whileTap={{ scale: 0.95 }}
                 >
-                  <IconWebglShader
-                    size={92}
-                    strokeWidth={3.5}
-                    iconSize={40}
-                    iconColor="#a1a1aa"
-                    icon={<PlusGlyph strokeWidth={2} />}
-                  />
+                <IconWebglShader
+                  size={92}
+                  strokeWidth={3.5}
+                  iconSize={40}
+                  iconColor="#52525b"
+                  innerTop="transparent"
+                  innerBottom="transparent"
+                  icon={<PlusGlyph strokeWidth={2} />}
+                />
                 </motion.button>
                 <p className="text-sm text-muted-foreground">
                   Create your first workflow
@@ -188,13 +206,15 @@ export default function Home() {
             animate={{ opacity: intro ? 0 : 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <div
+            <motion.div
+              layout
               className={cn(
-                "flex flex-col min-h-0 transition-all duration-500",
+                "flex flex-col min-h-0",
                 open
-                  ? "w-1/4 min-w-0 border-r border-white/5 pr-6"
+                  ? "w-1/4 min-w-0 border-r border-black/10 pr-6"
                   : "w-full max-w-4xl mx-auto"
               )}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <motion.div
                 className="flex items-center justify-between mb-5 shrink-0"
@@ -209,91 +229,26 @@ export default function Home() {
                   {workflows.length}
                 </span>
               </motion.div>
-              <div
-                className={cn(
-                  "grid gap-3 overflow-x-hidden",
-                  open
-                    ? "grid-cols-1 overflow-y-auto min-h-0 pr-1"
-                    : "sm:grid-cols-2 lg:grid-cols-3"
-                )}
-              >
-                <AnimatePresence mode="popLayout">
-                  {workflows.map((wf, i) => (
-                    <motion.div
-                      key={wf.id}
-                      initial={{ opacity: 0, x: -40 }}
-                      animate={{
-                        opacity: intro ? 0 : 1,
-                        x: intro ? -40 : 0,
-                        transition: {
-                          delay: intro ? 0 : i * 0.2,
-                          duration: 0.3,
-                          ease: "easeOut",
-                        },
-                      }}
-                      exit={{
-                        opacity: 0,
-                        scale: 0.9,
-                        y: -10,
-                        transition: { duration: 0.2, ease: "easeIn" },
-                      }}
-                      layout
-                      layoutId={wf.id}
-                    >
-                      <div
-                        className="group relative rounded-xl border border-white/10 bg-transparent p-4 flex flex-col gap-3 cursor-pointer transition-colors duration-200 hover:border-white/30"
-                        onClick={() => {
-                          if (wf.type === "ares") {
-                            router.push(`/pipeline/ares?name=${encodeURIComponent(wf.name)}`)
-                          } else {
-                            router.push(`/pipeline/libra?id=${encodeURIComponent(wf.id)}`)
-                          }
-                        }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            {wf.type === "ares" ? (
-                              <Zap className="size-4 text-amber-500 shrink-0" />
-                            ) : (
-                              <Layers className="size-4 text-sky-500 shrink-0" />
-                            )}
-                            <span className="text-sm font-medium text-foreground truncate">
-                              {wf.name}
-                            </span>
-                          </div>
-                          <motion.button
-                            type="button"
-                            aria-label={`Delete ${wf.name}`}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(wf.id)
-                            }}
-                            className="size-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 opacity-0 group-hover:opacity-100 shrink-0"
-                            whileHover={{ scale: 1.15 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </motion.button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-medium text-muted-foreground bg-muted/60 rounded-md px-1.5 py-0.5">
-                            {wf.type === "ares" ? "Single" : "Bulk"}
-                          </span>
-                          {wf.sorting && (
-                            <span className="text-[11px] text-muted-foreground">
-                              {wf.sorting}
-                            </span>
-                          )}
-                          <span className="text-[11px] text-muted-foreground ml-auto">
-                            {new Date(wf.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
+              <WorkflowGrid columns={open ? 1 : 3} gap={12}>
+                {workflows.map((wf) => (
+                  <WorkflowCard
+                    key={wf.id}
+                    workflow={wf}
+                    onClick={() => {
+                      if (wf.type === "ares") {
+                        router.push(`/pipeline/ares?name=${encodeURIComponent(wf.name)}`)
+                      } else {
+                        router.push(`/pipeline/libra?id=${encodeURIComponent(wf.id)}`)
+                      }
+                    }}
+                    onDelete={(e) => {
+                      e.stopPropagation()
+                      handleDelete(wf.id)
+                    }}
+                  />
+                ))}
+              </WorkflowGrid>
+            </motion.div>
 
             <AnimatePresence>
               {open && (

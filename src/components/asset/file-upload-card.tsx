@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import { Upload, X, FileBox } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type FileUploadCardProps = {
   label: string
@@ -10,6 +11,7 @@ type FileUploadCardProps = {
   onFile: (file: File) => void
   onClear: () => void
   accept: string
+  className?: string
 }
 
 export function FileUploadCard({
@@ -19,6 +21,7 @@ export function FileUploadCard({
   onFile,
   onClear,
   accept,
+  className,
 }: FileUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -29,7 +32,7 @@ export function FileUploadCard({
   }
 
   return (
-    <div className="rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300">
+    <div className={cn("rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300", className)}>
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-sm font-medium text-foreground">{label}</h3>

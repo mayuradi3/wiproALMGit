@@ -1,6 +1,6 @@
 import type { Workflow, WorkflowType, SortingRule } from "@/lib/workflow-registry"
 
-const LOCALSTORAGE_KEY = "cerberus-workflows"
+const LOCALSTORAGE_KEY = "alm-workflows"
 
 function readRegistryBrowser(): Workflow[] {
   if (typeof window === "undefined") return []

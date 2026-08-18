@@ -1,6 +1,7 @@
 "use client"
 
 import { CheckCircle2, Circle, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export type PipelineStep = "model" | "textures" | "thumbnail" | "bgremoval" | "fittoscreen" | "normalize" | "complete"
 
@@ -16,13 +17,14 @@ const STEPS: { key: PipelineStep; label: string }[] = [
 
 type PipelineStatusProps = {
   current: PipelineStep | null
+  className?: string
 }
 
-export function PipelineStatus({ current }: PipelineStatusProps) {
+export function PipelineStatus({ current, className }: PipelineStatusProps) {
   const idx = current ? STEPS.findIndex((s) => s.key === current) : -1
 
   return (
-    <div className="rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300">
+    <div className={cn("rounded-xl bg-card border border-border/40 p-4 flex flex-col gap-3 animate-in fade-in duration-300", className)}>
       <h3 className="text-sm font-medium text-foreground">Pipeline Status</h3>
       <div className="flex flex-col gap-2">
         {STEPS.map((step, i) => {

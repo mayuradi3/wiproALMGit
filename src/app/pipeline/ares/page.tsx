@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { AnimatePresence, motion } from "framer-motion"
 import { ArrowLeft, Folder, PanelRightOpen, PanelRightClose } from "lucide-react"
 import JSZip from "jszip"
 import { ThreeViewer, type Textures, type ThreeViewerHandle } from "@/components/asset/three-viewer"
@@ -15,6 +16,16 @@ type LogEntry = { id: string; message: string; type: "success" | "info" | "error
 
 import { cropTo256x256, fitToScreen } from "@/lib/image-utils"
 import { normalizeUsdScale, isUsdaFile } from "@/lib/usd-normalize"
+
+const springTransition = { type: "spring", stiffness: 400, damping: 25 } as const
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: springTransition },
+}
 
 function AresPipeline() {
   const router = useRouter()
@@ -112,9 +123,9 @@ function AresPipeline() {
 
     setRunning(true)
     setZipBlob(null)
-    texturesReadyRef.current = false
     modelErrorRef.current = null
     setModelError(null)
+    texturesReadyRef.current = false
 
     setPipelineStep("model")
     addLog("Waiting for model to load...", "info")
@@ -211,19 +222,38 @@ function AresPipeline() {
   }
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden bg-black">
-      <header className="flex items-center gap-3 px-4 py-3 border-b border-border/40 shrink-0 bg-black">
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springTransition}
+      className="flex flex-col h-dvh overflow-hidden bg-background"
+    >
+      <header className="flex items-center gap-3 px-4 py-3 shrink-0 bg-white">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => router.push("/")} className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200">
+          <motion.button
+            type="button"
+            onClick={() => router.push("/")}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            transition={springTransition}
+            className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
+          >
             <ArrowLeft className="size-4" />
-          </button>
+          </motion.button>
           <Folder className="size-4 text-foreground" />
           <span className="text-[15px] font-semibold tracking-tight text-foreground truncate flex-1">{assetName}</span>
         </div>
-        <button type="button" onClick={() => setShowControls((v) => !v)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md border border-border/40 hover:bg-muted transition-all ml-auto">
+        <motion.button
+          type="button"
+          onClick={() => setShowControls((v) => !v)}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          transition={springTransition}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md border border-border/40 hover:bg-muted transition-all ml-auto"
+        >
           {showControls ? <PanelRightClose className="size-3.5" /> : <PanelRightOpen className="size-3.5" />}
           {showControls ? "Hide" : "Show"} Controls
-        </button>
+        </motion.button>
       </header>
 
       <div className="flex flex-1 min-h-0">
@@ -240,29 +270,53 @@ function AresPipeline() {
         </div>
         <div className="shrink-0" style={{ flex: "0.1 0 0%" }} />
 
-        {showControls && (
-          <div className="w-[300px] shrink-0 border-l border-border/40 p-4 flex flex-col gap-3 overflow-y-auto bg-black">
-            <FileUploadCard
-              label="3D Model"
-              sublabel="Upload USD, OBJ, GLB, or GLTF"
-              fileName={modelName}
-              onFile={handleModelFile}
-              onClear={handleModelClear}
-              accept=".usd,.usda,.usdc,.obj,.glb,.gltf"
-            />
+        <AnimatePresence initial={false} mode="popLayout">
+          {showControls && (
+            <motion.div
+              key="controls"
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 40, opacity: 0 }}
+              transition={springTransition}
+              layout
+              className="w-[300px] shrink-0 p-4 flex flex-col gap-3 overflow-y-auto bg-background"
+            >
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col gap-3"
+              >
+                <motion.div variants={itemVariants}>
+                  <FileUploadCard
+                    label="3D Model"
+                    sublabel="Upload USD, OBJ, GLB, or GLTF"
+                    fileName={modelName}
+                    onFile={handleModelFile}
+                    onClear={handleModelClear}
+                    accept=".usd,.usda,.usdc,.obj,.glb,.gltf"
+                    className="border-0 bg-white"
+                  />
+                </motion.div>
 
-            <div className="flex flex-col gap-2">
-              <h3 className="text-xs font-medium text-foreground">Textures</h3>
-              <TextureSlot label="Base Color" hint="albedo" file={baseColorFile} onFile={setBaseColorFile} onClear={() => setBaseColorFile(null)} />
-              <TextureSlot label="Emissive" hint="optional" file={emissiveFile} onFile={setEmissiveFile} onClear={() => setEmissiveFile(null)} />
-              <TextureSlot label="Normal" hint="optional" file={normalFile} onFile={setNormalFile} onClear={() => setNormalFile(null)} />
-              <TextureSlot label="ORM" hint="R:ao G:rough B:metal" file={ormFile} onFile={setOrmFile} onClear={() => setOrmFile(null)} />
-            </div>
+                <motion.div variants={itemVariants} className="flex flex-col gap-2">
+                  <h3 className="text-xs font-medium text-foreground">Textures</h3>
+                  <TextureSlot label="Base Color" hint="albedo" file={baseColorFile} onFile={setBaseColorFile} onClear={() => setBaseColorFile(null)} className="border-0 bg-white" />
+                  <TextureSlot label="Emissive" hint="optional" file={emissiveFile} onFile={setEmissiveFile} onClear={() => setEmissiveFile(null)} className="border-0 bg-white" />
+                  <TextureSlot label="Normal" hint="optional" file={normalFile} onFile={setNormalFile} onClear={() => setNormalFile(null)} className="border-0 bg-white" />
+                  <TextureSlot label="ORM" hint="R:ao G:rough B:metal" file={ormFile} onFile={setOrmFile} onClear={() => setOrmFile(null)} className="border-0 bg-white" />
+                </motion.div>
 
-            <PipelineStatus current={pipelineStep} />
-            <ExecutionLogs logs={logs} />
-          </div>
-        )}
+                <motion.div variants={itemVariants}>
+                  <PipelineStatus current={pipelineStep} className="border-0 bg-white" />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <ExecutionLogs logs={logs} className="border-0 bg-white" />
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <ExportBar
@@ -275,8 +329,9 @@ function AresPipeline() {
         onPlay={executePipeline}
         running={running}
         assetName={assetName}
+        className="border-0 bg-white"
       />
-    </div>
+    </motion.div>
   )
 }
 

@@ -46,18 +46,18 @@ function ChoiceButton({
       whileHover={disabled ? undefined : { scale: 1.03, y: -2 }}
       whileTap={disabled ? undefined : { scale: 0.97 }}
       className={cn(
-        "flex items-center gap-3 rounded-xl border p-3.5 text-left backdrop-blur-xl transition-colors duration-200 focus:outline-none disabled:opacity-60",
+        "flex items-center gap-3 rounded-xl border p-3.5 text-left transition-colors duration-200 focus:outline-none disabled:opacity-60",
         selected
-          ? "border-white/50 bg-white/10"
-          : "border-white/15 bg-white/[0.04] hover:border-white/30"
+          ? "border-foreground/30 bg-secondary"
+          : "border-border bg-card hover:border-foreground/25"
       )}
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
         <Icon className={cn("size-4", iconColor)} />
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-white">{title}</span>
-        <span className="block text-[11px] text-white/55">{desc}</span>
+        <span className="block text-sm font-medium text-foreground">{title}</span>
+        <span className="block text-[11px] text-muted-foreground">{desc}</span>
       </span>
     </motion.button>
   )
@@ -65,7 +65,7 @@ function ChoiceButton({
 
 function StepLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/60">
+    <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-foreground">
       {children}
     </span>
   )
@@ -143,7 +143,7 @@ export function CreateWorkflowPanel({
               if (e.key === "Enter" && canCreate) handleCreate()
             }}
             placeholder="e.g. Character Assets"
-            className="mt-3 w-full rounded-xl border border-white/15 bg-black/25 px-4 py-3 text-sm text-white placeholder:text-white/40 backdrop-blur-md focus:border-white/35 focus:outline-none"
+            className="mt-3 w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
           />
         </section>
 
@@ -189,7 +189,7 @@ export function CreateWorkflowPanel({
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <StepLabel>Step 3 · Order</StepLabel>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-muted-foreground">
                 How should Libra sort files?
               </p>
               <div className="mt-3 grid grid-cols-2 gap-3">
@@ -200,7 +200,7 @@ export function CreateWorkflowPanel({
                   icon={ArrowDownUp}
                   title="Sorted"
                   desc="Ordered by filename"
-                  iconColor="text-zinc-200"
+                  iconColor="text-emerald-500"
                 />
                 <ChoiceButton
                   selected={sorting === "Unsorted"}
@@ -209,7 +209,7 @@ export function CreateWorkflowPanel({
                   icon={Shuffle}
                   title="Unsorted"
                   desc="Original file order"
-                  iconColor="text-zinc-200"
+                  iconColor="text-amber-500"
                 />
               </div>
             </motion.section>
@@ -248,8 +248,8 @@ export function CreateWorkflowPanel({
           className={cn(
             "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors duration-200 focus:outline-none",
             canCreate
-              ? "bg-zinc-100 text-zinc-900 hover:bg-white"
-              : "cursor-not-allowed bg-white/10 text-white/40"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-muted text-muted-foreground"
           )}
         >
           {creating ? "Creating..." : "Create project"}

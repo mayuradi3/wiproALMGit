@@ -143,21 +143,21 @@ function ModalShell({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950"
+        className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-          <Icon className="size-4 shrink-0 text-white/70" />
-          <span className="truncate text-sm font-medium text-white">{title}</span>
-          {subtitle && <span className="truncate text-[11px] text-white/40">· {subtitle}</span>}
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <Icon className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate text-sm font-medium text-foreground">{title}</span>
+          {subtitle && <span className="truncate text-[11px] text-muted-foreground">· {subtitle}</span>}
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="size-4" />
           </button>
@@ -180,21 +180,21 @@ function SplitList({
   className: string
 }) {
   return (
-    <div className="flex flex-col rounded-xl border border-white/10 bg-black/20 p-3">
+    <div className="flex flex-col rounded-xl border border-border bg-muted p-3">
       <p className={cn("mb-2 text-[10px] font-medium uppercase tracking-wider", className)}>
         {title} · {count}
       </p>
       <div className="max-h-72 space-y-0.5 overflow-y-auto pr-1">
         {items.length === 0 ? (
-          <p className="text-[11px] text-white/30">None</p>
+          <p className="text-[11px] text-muted-foreground/60">None</p>
         ) : (
           items.map((f) => (
             <div
               key={f.id}
-              className="flex items-center gap-2 rounded-md px-1.5 py-0.5 font-mono text-[10px] text-white/60"
+              className="flex items-center gap-2 rounded-md px-1.5 py-0.5 font-mono text-[10px] text-foreground/70"
             >
               <span className="min-w-0 flex-1 truncate">{f.path}</span>
-              <span className="shrink-0 text-white/35">{formatBytes(f.size)}</span>
+              <span className="shrink-0 text-muted-foreground/60">{formatBytes(f.size)}</span>
             </div>
           ))
         )}
@@ -205,10 +205,10 @@ function SplitList({
 
 function AssetRow({ asset }: { asset: Asset }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-muted px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-white">{asset.base}</p>
-        <p className="truncate text-[10px] text-white/40">{asset.usd.path}</p>
+        <p className="truncate text-xs font-medium text-foreground">{asset.base}</p>
+        <p className="truncate text-[10px] text-muted-foreground">{asset.usd.path}</p>
       </div>
       <div className="hidden gap-1.5 sm:flex">
         {TEXTURE_SUFFIXES.map((key) => (
@@ -218,15 +218,15 @@ function AssetRow({ asset }: { asset: Asset }) {
             className={cn(
               "rounded px-1.5 py-0.5 text-[9px]",
               asset.textures[key]
-                ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-400"
-                : "border border-white/10 bg-white/5 text-white/30"
+                ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                : "border border-border bg-muted text-muted-foreground/60"
             )}
           >
             {key}
           </span>
         ))}
       </div>
-      <span className="shrink-0 text-[10px] text-white/40">{formatBytes(asset.totalSize)}</span>
+      <span className="shrink-0 text-[10px] text-muted-foreground">{formatBytes(asset.totalSize)}</span>
     </div>
   )
 }
@@ -250,13 +250,13 @@ export function AssetResultsModal({
           const groupAssets = assets.filter((a) => a.status === g.status)
           return (
             <div key={g.status}>
-              <div className="mb-2 flex items-center gap-2">
-                <span className="text-[11px] font-medium text-white/80">{g.label}</span>
-                <span className="text-[11px] text-white/40">({groupAssets.length})</span>
-              </div>
-              {groupAssets.length === 0 ? (
-                <p className="px-1 text-[11px] text-white/30">None</p>
-              ) : (
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-[11px] font-medium text-foreground/80">{g.label}</span>
+            <span className="text-[11px] text-muted-foreground">({groupAssets.length})</span>
+          </div>
+          {groupAssets.length === 0 ? (
+            <p className="px-1 text-[11px] text-muted-foreground/60">None</p>
+          ) : (
                 <div className="space-y-1.5">
                   {groupAssets.map((a) => (
                     <AssetRow key={a.id} asset={a} />
@@ -290,7 +290,7 @@ function BatchingBody({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <label htmlFor="batch-size" className="text-[11px] text-white/60">
+        <label htmlFor="batch-size" className="text-[11px] text-muted-foreground">
           Batching size
         </label>
         <input
@@ -299,17 +299,17 @@ function BatchingBody({
           min={1}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          className="w-20 rounded-lg border border-white/15 bg-black/25 px-2 py-1.5 text-xs text-white focus:border-white/35 focus:outline-none"
+          className="w-20 rounded-lg border border-border bg-card px-2 py-1.5 text-xs text-foreground focus:border-ring focus:outline-none"
         />
         <button
           type="button"
           onClick={() => onSave(draft)}
-          className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/25 px-2.5 py-1.5 text-[11px] font-medium text-white/70 transition-all duration-200 hover:border-white/40 hover:bg-white/[0.06] hover:text-white"
+          className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-all duration-200 hover:border-foreground/30 hover:bg-secondary hover:text-foreground"
         >
           <Save className="size-3" />
           Save
         </button>
-        <span className="text-[11px] text-white/50">
+        <span className="text-[11px] text-muted-foreground">
           {passable.length} assets · {size > 0 ? `${batches.length} batches` : "—"} ·{" "}
           {formatBytes(totalSize)} total
         </span>
@@ -320,19 +320,19 @@ function BatchingBody({
             const open = !!expanded[i]
             const total = batch.reduce((s, a) => s + a.totalSize, 0)
             return (
-              <div key={i} className="rounded-lg border border-white/10 bg-white/[0.02]">
+              <div key={i} className="rounded-lg border border-border bg-card">
                 <button
                   type="button"
                   onClick={() => setExpanded((p) => ({ ...p, [i]: !open }))}
                   className="flex w-full items-center gap-2 px-3 py-2 text-left"
                 >
                   {open ? (
-                    <ChevronDown className="size-3 shrink-0 text-white/40" />
+                    <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
                   ) : (
-                    <ChevronRight className="size-3 shrink-0 text-white/40" />
+                    <ChevronRight className="size-3 shrink-0 text-muted-foreground" />
                   )}
-                  <span className="text-[11px] font-medium text-white">Batch #{i + 1}</span>
-                  <span className="ml-auto text-[10px] text-white/45">
+                  <span className="text-[11px] font-medium text-foreground">Batch #{i + 1}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">
                     {batch.length} assets · {formatBytes(total)}
                   </span>
                 </button>
@@ -341,7 +341,7 @@ function BatchingBody({
                     {batch.map((a) => (
                       <span
                         key={a.id}
-                        className="rounded bg-white/[0.05] px-1.5 py-0.5 text-[10px] text-white/60"
+                        className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
                       >
                         {a.base}
                       </span>
@@ -402,36 +402,36 @@ export function SubCardModal({
         icon={List}
         onClose={onClose}
       >
-        {files.length === 0 ? (
-          <div className="flex h-32 items-center justify-center gap-2 text-xs text-white/30">
-            <Inbox className="size-4" />
-            <span>No files yet</span>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {grouped.map(([dir, list]) => (
-              <div key={dir}>
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
-                  {dir}
-                </p>
-                <div className="space-y-0.5">
-                  {list.map((f) => (
-                    <div
-                      key={f.id}
-                      className="flex items-center gap-2 rounded-md px-2 py-1 font-mono text-[11px] text-white/70 hover:bg-white/[0.04]"
-                    >
-                      <FileText className="size-3 shrink-0 text-white/30" />
-                      <span className="min-w-0 flex-1 truncate">{f.path}</span>
-                      <span className="shrink-0 text-[10px] text-white/35">
-                        {formatBytes(f.size)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+      {files.length === 0 ? (
+        <div className="flex h-32 items-center justify-center gap-2 text-xs text-muted-foreground/60">
+          <Inbox className="size-4" />
+          <span>No files yet</span>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {grouped.map(([dir, list]) => (
+            <div key={dir}>
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                {dir}
+              </p>
+              <div className="space-y-0.5">
+                {list.map((f) => (
+                  <div
+                    key={f.id}
+                    className="flex items-center gap-2 rounded-md px-2 py-1 font-mono text-[11px] text-foreground/80 hover:bg-muted"
+                  >
+                    <FileText className="size-3 shrink-0 text-muted-foreground/50" />
+                    <span className="min-w-0 flex-1 truncate">{f.path}</span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground/60">
+                      {formatBytes(f.size)}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
+      )}
       </ModalShell>
     )
   }
@@ -449,9 +449,9 @@ export function SubCardModal({
             title="USD"
             count={usdFiles.length}
             items={usdFiles}
-            className="text-amber-300"
+            className="text-amber-600"
           />
-          <SplitList title="PNG" count={pngFiles.length} items={pngFiles} className="text-sky-300" />
+          <SplitList title="PNG" count={pngFiles.length} items={pngFiles} className="text-sky-600" />
         </div>
       </ModalShell>
     )
@@ -501,23 +501,23 @@ function RulesModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-6 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950"
+        className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-          <List className="size-4 shrink-0 text-white/70" />
-          <span className="truncate text-sm font-medium text-white">Sorting Rules</span>
-          <span className="truncate text-[11px] text-white/40">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <List className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate text-sm font-medium text-foreground">Sorting Rules</span>
+          <span className="truncate text-[11px] text-muted-foreground">
             · {workflowId ? "editing" : "not saved"}
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="size-4" />
           </button>
@@ -530,7 +530,7 @@ function RulesModal({
             onUnlistedChange={setUnlisted}
           />
           <div className="flex items-center justify-end gap-2">
-            <span className="text-[11px] text-white/50">
+            <span className="text-[11px] text-muted-foreground">
               Changes are saved to this workflow only
             </span>
             <button
@@ -551,7 +551,7 @@ function RulesModal({
                   onClose()
                 }, 300)
               }}
-              className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.08] px-3 py-1.5 text-[11px] font-medium text-white transition-all duration-200 hover:border-white/40 hover:bg-white/[0.12] disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-foreground transition-all duration-200 hover:border-foreground/30 hover:bg-secondary disabled:opacity-60"
             >
               <Save className="size-3" />
               {saving ? "Saving…" : "Save Rules"}

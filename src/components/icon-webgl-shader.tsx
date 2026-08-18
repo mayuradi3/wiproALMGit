@@ -18,9 +18,9 @@ export function IconWebglShader({
   size = 220,
   strokeWidth = 3,
   iconSize = 72,
-  iconColor = "#8a8a8a",
-  innerTop = "#1c1c1c",
-  innerBottom = "#000000",
+  iconColor = "#5f6064",
+  innerTop = "#f3f3f5",
+  innerBottom = "#ffffff",
   icon,
 }: IconWebglShaderProps) {
   const shaderRef = useRef<HTMLDivElement>(null)
@@ -46,6 +46,9 @@ export function IconWebglShader({
         u_shape: 1,
         u_offsetX: 0.1,
         u_offsetY: -0.1,
+        u_color1: [0.96, 0.96, 0.97, 1],
+        u_color2: [0.69, 0.78, 0.84, 1],
+        u_color3: [0.37, 0.38, 0.39, 1],
       },
       undefined,
       1
@@ -95,7 +98,7 @@ export function IconWebglShader({
           borderRadius: "50%",
           background: `linear-gradient(180deg, ${innerTop}, ${innerBottom})`,
           boxShadow:
-            "inset 0 1px 4px rgba(255,255,255,0.1), inset 0 -6px 12px rgba(0,0,0,0.6)",
+            "inset 0 1px 4px rgba(255,255,255,0.8), inset 0 -6px 12px rgba(0,0,0,0.08)",
           zIndex: 1,
         }}
       />

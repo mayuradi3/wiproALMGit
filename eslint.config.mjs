@@ -15,6 +15,12 @@ const eslintConfig = defineConfig([
     // Standalone pipeline projects live outside the app.
     "Pipelines/**",
   ]),
+  {
+    rules: {
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

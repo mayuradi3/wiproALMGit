@@ -2,6 +2,7 @@
 
 import { useRef } from "react"
 import { Upload, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type TextureSlotProps = {
   label: string
@@ -9,9 +10,10 @@ type TextureSlotProps = {
   file: File | null
   onFile: (file: File) => void
   onClear: () => void
+  className?: string
 }
 
-export function TextureSlot({ label, hint, file, onFile, onClear }: TextureSlotProps) {
+export function TextureSlot({ label, hint, file, onFile, onClear, className }: TextureSlotProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -21,7 +23,7 @@ export function TextureSlot({ label, hint, file, onFile, onClear }: TextureSlotP
   }
 
   return (
-    <div className="rounded-lg bg-card border border-border/40 p-3 flex flex-col gap-2">
+    <div className={cn("rounded-lg bg-card border border-border/40 p-3 flex flex-col gap-2", className)}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-foreground">{label}</span>
         {hint && <span className="text-[10px] text-muted-foreground">{hint}</span>}

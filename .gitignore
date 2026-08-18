@@ -43,3 +43,24 @@ next-env.d.ts
 # tauri remnants
 /src-tauri
 /workflows
+
+# temporary / runtime files
+*.log
+*.tmp
+/tmp
+.DS_Store
+.cache
+
+# editor / os
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# playwright
+/test-results/
+/e2e/.auth/
+
+# dependency locks handled by package-lock.json; ignore if pnpm/yarn used
+pnpm-lock.yaml
+yarn.lock
