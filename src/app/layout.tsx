@@ -4,6 +4,7 @@ import { IBM_Plex_Sans, Zen_Dots } from "next/font/google"
 import { CursorProvider } from "@/components/cursor/cursor-provider"
 import { AmbientBackground } from "@/components/ambient-background"
 import { BackgroundLayer } from "@/components/background-layer"
+import { Analytics } from '@vercel/analytics/next'
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({
         <div className="relative z-10 flex flex-col min-h-dvh">
           {children}
         </div>
+        <Analytics />
       </body>
     </html>
   )
